@@ -44,28 +44,28 @@ The six skills split into **design‑time** (build and calibrate the harness for
                           └───────────────┬─────────────┘
                                           │ assertions + codebase profile
                   ┌───────────────────────┼───────────────────────┐
-                  ▼                        ▼                        │
-   ┌──────────────────────────┐   (escalate: judge)                │
-   │ behavioral-evaluation-    │   Layer 2 specs                   │
-   │ designer                  │                                    │
-   └────────────┬─────────────┘                                    │
-                │ behavioral specs                                  │
-                ▼                          ▼                        │
+                  ▼                       ▼                       │
+   ┌──────────────────────────┐   (escalate: judge)               │
+   │ behavioral-evaluation-    │   Layer 2 specs                  │
+   │ designer                  │                                  │
+   └────────────┬─────────────┘                                   │
+                │ behavioral specs                                │
+                ▼                         ▼                       │
    ┌──────────────────────────┐   ┌──────────────────────────┐    │
-   │ behavioral-test-          │   │ judge-rubric-designer     │ ◄──┘
-   │ implementer (real tests)  │   │ Layer 3 rubrics           │
+   │ behavioral-test-         │   │ judge-rubric-designer    │ ◄──┘
+   │ implementer (real tests) │   │ Layer 3 rubrics          │
    └──────────────────────────┘   └────────────┬─────────────┘
-                                                │ rubrics
-                                                ▼
+                                               │ rubrics
+                                               ▼
                                    ┌──────────────────────────┐
-                                   │ judge-validation-runner   │  trust the judges
-                                   └────────────┬─────────────┘
-                                                │ validated rubrics
+                                   │ judge-validation-runner  │  trust the judges
+                                   └───────────┬──────────────┘
+                                               │ validated rubrics
    ────────────────────────────────────────────┼────────────────────────────
-                                                ▼
+                                               ▼
    a code change ─────────────────►  ┌──────────────────────────┐
-                                      │      harness-runner       │  → verdict
-                                      └──────────────────────────┘
+                                     │      harness-runner      │  → verdict
+                                     └──────────────────────────┘
 ```
 
 A typical end‑to‑end flow:
@@ -105,4 +105,3 @@ Drop the skill directories into a Claude Code skills location — `.claude/skill
 
 ---
 
-Part of the [*From Agent User to Agent Architect*](../) workshop materials.
