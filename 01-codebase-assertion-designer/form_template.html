@@ -143,19 +143,19 @@
 <body>
 <header class="top"><div class="wrap">
   <h1 id="title">Conventions <small id="repo"></small></h1>
-  <div class="filters" id="filters" role="group" aria-label="Filter rules"></div>
+  <div class="filters" id="filters" role="group" aria-label="Filter conventions"></div>
 </div></header>
 
 <div class="wrap">
   <dl class="profile" id="profile"></dl>
   <div class="howto">
-    Each card is a rule the agent thinks this repo follows. For each one: <b>Keep</b> if it is right,
-    <b>Fix</b> and rewrite it if it is close, <b>Drop</b> if it is wrong or not a rule.
+    Each card is a convention the agent thinks this repo follows. The sentence in large type is its assertion: what must be true. For each one: <b>Keep</b> if it is right,
+    <b>Fix</b> and rewrite it if it is close, <b>Drop</b> if it is wrong or not a convention.
     Open <i>Evidence</i> to see where it came from. Your decisions are saved in this browser as you go.
     When done, use <b>Copy</b> or <b>Download</b> at the bottom to hand them back.
   </div>
   <div class="list" id="list"></div>
-  <div class="empty" id="empty" hidden>No rules match this filter.</div>
+  <div class="empty" id="empty" hidden>No conventions match this filter.</div>
 </div>
 
 <footer class="bar"><div class="wrap">
@@ -179,7 +179,7 @@ const DATA = /*__DATA__*/null;
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-  document.getElementById('repo').textContent = DATA.repo + ' · ' + rules.length + ' rules';
+  document.getElementById('repo').textContent = DATA.repo + ' · ' + rules.length + ' conventions';
   document.title = 'Conventions · ' + DATA.repo;
 
   const p = DATA.profile || {};
@@ -215,8 +215,9 @@ const DATA = /*__DATA__*/null;
         <span class="chip check-${esc(c.check)}">${esc(checkLabel)}</span>
         <span>confidence ${esc(c.confidence)}</span>
       </div>
-      <p class="rule">${esc(c.rule)}</p>
+      <p class="rule">${esc(c.assertion)}</p>
       <p class="why">${esc(c.why_it_matters)}</p>
+      <p class="check-detail"><b>How this repo does it:</b> ${esc(c.mechanism)}</p>
       <p class="check-detail"><b>How a change gets checked:</b> ${esc(c.check_detail)}</p>
       <details><summary>Evidence (${(c.evidence||[]).length})${(c.counter_examples||[]).length ? ' · breaks (' + c.counter_examples.length + ')' : ''}</summary><div class="ev">${ev}${ce}</div></details>
       <div class="decide">
@@ -229,8 +230,8 @@ const DATA = /*__DATA__*/null;
       </div>
       <div class="inputs">
         <div data-revised ${s.decision==='fix' ? '' : 'hidden'}>
-          <label for="rev-${esc(c.id)}">Rewrite the rule</label>
-          <textarea class="revised" id="rev-${esc(c.id)}">${esc(s.revised ?? c.rule)}</textarea>
+          <label for="rev-${esc(c.id)}">Rewrite the assertion</label>
+          <textarea class="revised" id="rev-${esc(c.id)}">${esc(s.revised ?? c.assertion)}</textarea>
         </div>
         <div>
           <label for="note-${esc(c.id)}">Note (why, or what the agent missed)</label>
@@ -280,8 +281,8 @@ const DATA = /*__DATA__*/null;
         return {
           id: c.id,
           decision: s.decision || 'undecided',
-          rule_original: c.rule,
-          rule_final: s.decision === 'drop' ? null : (s.decision === 'fix' ? (s.revised ?? c.rule) : c.rule),
+          assertion_original: c.assertion,
+          assertion_final: s.decision === 'drop' ? null : (s.decision === 'fix' ? (s.revised ?? c.assertion) : c.assertion),
           check: c.check,
           note: s.note || ''
         };

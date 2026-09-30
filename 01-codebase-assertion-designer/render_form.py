@@ -16,7 +16,7 @@ TEMPLATE = HERE / "form_template.html"
 
 REQUIRED_TOP = {"repo", "generated_at", "profile", "conventions"}
 REQUIRED_RULE = {
-    "id", "rule", "category", "confidence", "why_it_matters",
+    "id", "assertion", "mechanism", "category", "confidence", "why_it_matters",
     "evidence", "counter_examples", "check", "check_detail",
 }
 CHECKS = {"reading", "test", "judgment"}
@@ -70,7 +70,7 @@ def main(argv):
     dst.write_text(html, encoding="utf-8")
     n = len(data["conventions"])
     by_check = {k: sum(1 for c in data["conventions"] if c["check"] == k) for k in sorted(CHECKS)}
-    print(f"wrote {dst} ({n} rules; " + ", ".join(f"{k} {v}" for k, v in by_check.items()) + ")")
+    print(f"wrote {dst} ({n} conventions; " + ", ".join(f"{k} {v}" for k, v in by_check.items()) + ")")
     return 0
 
 
