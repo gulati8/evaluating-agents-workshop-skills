@@ -1,128 +1,163 @@
 ---
 name: codebase-assertion-designer
-description: Inspect a codebase and propose deterministic assertions for evaluating future AI-generated code changes.
+description: Read a repository and write down its conventions, the rules for how code in this repo should be written, as a machine-readable file and a review form the team corrects.
 ---
 
 # Codebase Assertion Designer
 
 ## Purpose
 
-Read a codebase and produce two things:
+Read a repository and write down its **conventions**: the rules for how code in this repository is written. Not generic best practices. The rules this repo actually follows, stated so that someone writing new code here (a person or an agent) would know what to do.
 
-1. A **codebase profile** — the conventions, patterns, and high-risk surfaces this repository actually uses. This profile is the foundation every later evaluation stage builds on, so it must describe what is *true of this repo*, not generic best practice.
-2. A set of **deterministic assertions** — cheap, mechanical checks that a future AI-generated diff can be tested against without human judgment.
+Two outputs, same content:
 
-A deterministic assertion does not prove the code is correct. It checks whether a change carried the *evidence* a trustworthy change would carry — the right files touched, the expected symbols present, the neighboring files updated together. It tells a reviewer where to look, and it runs on every diff at machine speed.
+1. `conventions.json`: the machine-readable version. Later steps use it to check whether a change kept every assertion true.
+2. `conventions.html`: a review form. The team keeps, fixes, or drops each convention. Their corrections are what the conventions become.
 
-Anything that needs judgment about whether the code is actually correct, well-designed, or secure does **not** belong in a deterministic assertion. It belongs in the `escalate` block, tagged for the layer that can handle it. That handoff is what lets a judge or a human pick up exactly where the mechanical check stops.
+You are proposing. The team decides. Write every convention so it is easy to disagree with: show where you saw it, show where the repo breaks it, say how sure you are.
 
 ## When to use this skill
 
 Use when asked to:
 
-- design deterministic assertions for a repository
-- profile a codebase's conventions or high-risk change surfaces
-- set up automated evidence checks for future generated diffs
-- build the first (deterministic) layer of an agent-code evaluation harness
+- write down a repository's conventions or coding rules
+- produce the assertions about how code in a repo should be written
+- profile how a codebase is actually built, for a team to review
+- prepare the first layer of an agent-code evaluation loop
 
-Do not require a specific feature request — work from repository structure.
+## The four tests
+
+A convention should be captured for review only if it passes all four:
+
+1. **An agent could plausibly break it** while doing ordinary work in this repo.
+2. **An agent would not already know it.** It is specific to this repo, not standard practice that is known from training.
+3. **A reviewer would send the change back** if it were broken. Not mention it. Send it back.
+4. **It recurs.** The pattern appears in more than one place. If it happens once, it is not a pattern.
+
+If any test fails, the candidate is dropped. Most candidates fail one of them. That is expected.
+
+### Examples
+
+**Passes all four.**
+
+> Assertion: Anything read or written under `/organizations/:orgId` should be scoped to that org in the query.
+> Mechanism: `request.params.orgId` goes into the Prisma `where`, directly or through the owning relation.
+
+An agent adding a new endpoint could easily forget it. Nothing about the framework implies it. A reviewer would block the change.
+
+**Fails test 3. Housekeeping.**
+
+> Put one-off working files in `tmp/` and durable scripts in `packages/backend/scripts/`.
+
+An agent might break it, but no reviewer sends a change back over it.
+
+**Fails test 2. Standard practice.**
+
+> Construct third-party SDK clients lazily on first use, not at module load.
+
+A reviewer would send it back, but any capable agent does this by default. Writing it down adds nothing.
+
+**Fails test 3. Taste.**
+
+> Write a comment only for an invariant the code cannot express.
+
+Two reviewers would disagree on whether it was broken.
+
+**A bundle that must be split.** This was proposed as one candidate:
+
+> When you add a background job: declare its Queue and a typed JobData interface in `src/lib/queues.ts` and append it to `allQueues`; register a Worker with explicit `concurrency` in `src/worker.ts` and add it to `workerQueuePairs`; payloads carry ids only; custom jobIds must contain no `:`.
+
+It is four candidates. Tested separately:
+
+- Every queue and its worker are registered in both lists, so failures route to the dead-letter queue. **Convention.** Easy to miss, repo-specific, reviewer blocks it.
+- Job payloads carry ids only; handlers re-read the row. **Convention.** Separate assertion, separate reason.
+- Workers set explicit concurrency. **Fails test 3.** A reviewer would mention it, not block.
+- Job ids cannot contain a colon. **Fails test 2 in reverse:** it is a library gotcha, not a convention of this repo.
+
+One assertion per convention. If the sentence has "and" joining two things a reviewer could judge separately, it is two candidates.
 
 ## Process
 
-1. Inspect the repository structure and identify the architecture and major layers.
-2. Identify where tests live and how they are named.
-3. Identify authorization, permissions, and access-control patterns.
-4. Identify data model, schema, and migration patterns.
-5. Identify API, route, controller, schema, and contract patterns.
-6. Identify logging, audit, metrics, and observability patterns.
-7. Identify dependency, package, build, and configuration files.
-8. Identify the high-risk change surfaces — where a silent mistake would be expensive.
-9. Propose deterministic assertions tied directly to the observed structure.
-10. For every concern you could see but could not make mechanical, write an `escalate` entry tagged `judge` or `human`.
+1. Read the repository structure. Identify the stack, the major layers, and where each kind of code lives.
+2. Read enough real code in each layer to see the patterns. Read several files per pattern, not one. A single occurrence is not a convention. Read code only, do not infer convention from documentation, only from the code itself. If you cannot find a pattern, do not invent one.
+3. For each pattern, look for counter-examples. If a convention is not followed in the repo, say where. The team needs that to decide whether it should be enforced.
+4. Look specifically at these surfaces, because they are where a silent mistake costs the most, but do not limit the rules to them:
+   - authorization, permissions, access control
+   - data access, schema, migrations, transactions
+   - API surface, contracts, request and response shapes
+   - error handling and what is allowed to fail silently
+   - logging, audit, metrics
+   - tests: where they live, how they are named, what they set up, what they assert
+   - dependencies, build, and configuration
+   - repository structure: what goes where, what must change together
+5. Write each convention as an instruction addressed to the writer. "Every route handler calls the auth helper before reading data" is a convention. "Auth helper is present in route files" is a diff check. Write the first kind.
+6. For each convention, decide how a change could be checked against it:
+   - `reading`: a mechanical check on the diff can tell. Which files changed, what symbols appear, what changed together.
+   - `test`: only running the code can tell. Describe what a test would prove.
+   - `judgment`: it needs a reader to reason about the change. State the question a reviewer would ask.
+7. Rate your confidence in each convention: `high` if it holds across the repo with no counter-examples, `medium` if it holds mostly, `low` if you saw it but are not sure it is deliberate.
+8. Write the JSON file, then render the form.
 
-## Assertion design rules
+## Evidence
 
-Each assertion must be checkable mechanically against a future diff. Good signals include:
-
-- specific directories or file types touched
-- required neighboring files changed together
-- expected keywords or symbols present
-- test files added or modified
-- dependency, migration, or API-contract files changed
-- authorization, audit, or logging surfaces touched
-
-Do **not** write assertions that require judgment — "abstraction is good," "logic is correct," "tests are sufficient," "code is maintainable." Those are not failures of the assertion; they are the boundary of what is mechanical. Send each one to the `escalate` block instead.
-
-For every assertion, be honest about its limits: state the `false_positive_risk` (where it fires but nothing is wrong) and the `false_negative_risk` (where it passes but something could still be wrong). The false-negative is usually the reason a downstream judge or human layer exists — name it so the handoff is explicit.
-
-## Severity definitions
-
-- `block`: a missing signal should stop normal review unless explained or overridden. Reserve for high-risk surfaces (authz, audit, schema, public API).
-- `warn`: a missing signal should focus reviewer attention.
-- `info`: useful context, not a gate.
-
-## The escalate block
-
-This is the bridge to the rest of the harness. Every concern you cannot make deterministic goes here, with:
-
-- `concern`: what needs evaluating
-- `why_not_deterministic`: why a mechanical check cannot answer it
-- `target_layer`: `judge` if a model reading the diff against criteria could evaluate it; `human` if it depends on intent, architecture direction, or context not present in the code
-- `source_signal`: the assertion id or repo surface this concern attaches to, so the next stage knows where it lives
-- `evaluation_question`: the question the next layer must answer (for `judge` items, this becomes the judge's grading question)
-
-Tag `judge` for things like "is access proven on every path," "does this follow the repo's established pattern." Tag `human` for things like "is this the right architecture for where we're heading," "does this test reflect what the feature was meant to do."
+- **Address the writer.** Every convention should complete the sentence "when you write code in this repo, ...".
+- **Name real things.** Real paths, real helpers, real directories from this repo. A convention that could be true of any codebase is not a convention of this one.
+- **One assertion per entry.** Do not bundle. A convention can be verified through a single assertion, if multiple are required, it is multiple conventions.
+- **Show your evidence.** At least one real file path and a short excerpt per convention. If you cannot cite it, do not propose it.
+- **Show the breaks.** If the repo violates the convention anywhere, list where. Never hide a counter-example to make a convention look cleaner.
+- **Say what it protects.** One sentence on what goes wrong when the convention is broken. If nothing goes wrong, the convention is probably style, and should say so in its category.
+- **Do not pad.** Twenty rules the team argues about beat sixty they skim. Aim for the conventions that matter most on the surfaces in step 4, then add structure and style rules only where they are clearly deliberate.
 
 ## Inputs and outputs
 
-This skill reads the repository in the working directory; it takes no input file.
+This skill reads the repository in the working directory. It takes no input file.
 
-Write the whole result to the output path given in the prompt, creating any parent directory it names. If no output path is given, ask for one rather than guessing a filename. The full result must go to the file — it is what later stages read — not only to chat.
+Write both outputs to the output directory given in the prompt, creating it if needed. If no output directory is given, use `./tmp/assertion-designer` in the repository root.
 
-After writing, print a short summary to the conversation: the number of assertions by severity (`block`/`warn`/`info`), the number of `escalate` items by `target_layer`, and the path written. Do not paste the full YAML into chat — the file is the source of truth; the summary is just for a quick eyeball.
+1. Write `<output dir>/conventions.json` in the format below.
+2. Render the form by running, from the directory this skill lives in:
+
+   ```
+   python3 render_form.py <output dir>/conventions.json <output dir>/conventions.html
+   ```
+
+   The script uses only the Python standard library. If it fails, report the error. Do not hand-write the HTML instead.
+
+After writing, print a short summary to the conversation: the repo name, the number of conventions, the count by `check` and by `confidence`, and both paths written. Do not paste the JSON into chat.
 
 ## Output format
 
-Write this structure exactly to the output file:
+Write this structure exactly to `conventions.json`:
 
-```yaml
-codebase_profile:
-  architecture:
-    - observation:
-  tests:
-    - observation:
-  authorization:
-    - observation:
-  data_access:
-    - observation:
-  api_contracts:
-    - observation:
-  observability:
-    - observation:
-  dependencies:
-    - observation:
-
-deterministic_assertions:
-  - id:
-    name:
-    category:
-    severity:           # block | warn | info
-    claim:
-    deterministic_signal:
-    files_or_patterns_to_inspect:
-      files:
-        -
-      patterns:
-        -
-    why_it_matters:
-    false_positive_risk:
-    false_negative_risk:
-    reviewer_question:
-
-escalate:
-  - concern:
-    why_not_deterministic:
-    target_layer:         # judge | human
-    source_signal:        # assertion id or repo surface this attaches to
-    evaluation_question:
+```json
+{
+  "repo": "name of the repository",
+  "generated_at": "ISO-8601 timestamp",
+  "profile": {
+    "stack": "one line: languages, frameworks, build tool",
+    "layers": ["one line per major layer and where it lives"],
+    "tests": "one line: framework, location, how they run",
+    "notes": ["anything else a reviewer should know before reading the conventions"]
+  },
+  "conventions": [
+    {
+      "id": "C01",
+      "convention": "The instruction, addressed to the writer, naming real things in this repo.",
+      "mechanism": "How this repo makes it true today: the helpers, paths, and shapes involved.",
+      "category": "authorization | data | api | jobs | errors | observability | testing | dependencies | structure | style",
+      "confidence": "high | medium | low",
+      "why_it_matters": "One sentence: what goes wrong when the instruction is not followed.",
+      "evidence": [
+        { "path": "relative/path/to/file.ext", "excerpt": "a few lines, verbatim" }
+      ],
+      "counter_examples": [
+        { "path": "relative/path/to/file.ext", "note": "how the convention is violated here" }
+      ],
+      "check": "reading | test | judgment",
+      "check_detail": "For reading: what a mechanical check looks for in a diff. For test: what a test would prove. For judgment: the question a reviewer answers."
+    }
+  ]
+}
 ```
+
+`counter_examples` may be an empty list. Nothing else may be omitted.
