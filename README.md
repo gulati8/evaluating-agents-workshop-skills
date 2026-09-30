@@ -24,7 +24,7 @@ The six skills split into **design‑time** (build and calibrate the harness for
 
 | Skill | Input → Output |
 |-------|----------------|
-| **`codebase-assertion-designer`** | a repository → a **codebase profile** + **deterministic assertions** (Layer 1). Profiles the repo's real conventions and high‑risk surfaces; everything downstream builds on this. Concerns needing judgment go in an `escalate` block tagged for a later layer. |
+| **`codebase-assertion-designer`** | a repository → **`conventions.json`** + **`conventions.html`**. Writes down the rules for how code in this repo is written (addressed to the writer, naming real files and helpers, with evidence and counter‑examples), each tagged with how a change can be checked against it: by `reading` the diff, by a `test`, or by `judgment`. The HTML is a review form: the team keeps, fixes, or drops each rule and exports their corrections as JSON. |
 | **`behavioral-evaluation-designer`** | assertions file → **behavioral evaluation specs** (Layer 2). For each assertion worth proving at runtime, designs the test that proves it — and states clearly what runtime testing still *can't* prove, routing that onward. |
 | **`behavioral-test-implementer`** | behavioral specs + repo → **real test files, run**. Inspects how the repo actually writes and runs tests, writes tests in that style, runs them, and reports honestly what passed, failed, or needs infrastructure it doesn't fake. |
 | **`judge-rubric-designer`** | assertions + behavioral files → **LLM‑as‑judge rubrics** (Layer 3). Turns every `judge`‑tagged concern into a precise grading rubric grounded in *this* repo's conventions: one dimension per judge, criteria a second reader could apply, required citations. |
@@ -81,15 +81,18 @@ A typical end‑to‑end flow:
 
 ```
 .
-├── behavioral-evaluation-designer/SKILL.md
-├── behavioral-test-implementer/SKILL.md
-├── codebase-assertion-designer/SKILL.md
-├── harness-runner/SKILL.md
-├── judge-rubric-designer/SKILL.md
-└── judge-validation-runner/SKILL.md
+├── 01-codebase-assertion-designer/
+│   ├── SKILL.md
+│   ├── render_form.py        # conventions.json → conventions.html (stdlib only)
+│   └── form_template.html
+├── 02-behavioral-evaluation-designer/SKILL.md
+├── 03-behavioral-test-implementer/SKILL.md
+├── 04-judge-rubric-designer/SKILL.md
+├── 05-judge-validation-runner/SKILL.md
+└── 06-harness-runner/SKILL.md
 ```
 
-Each skill is a single `SKILL.md` with YAML frontmatter (`name`, `description`) and the instructions Claude follows when the skill is invoked.
+Each skill is a `SKILL.md` with YAML frontmatter (`name`, `description`) and the instructions Claude follows when the skill is invoked.
 
 ## Using the skills
 

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conventions Review</title>
+<style>
+  :root {
+    --paper: #f6f5f1;
+    --card: #ffffff;
+    --ink: #1d2027;
+    --muted: #666b78;
+    --line: #dcdad3;
+    --code-bg: #eeede8;
+    --accent: #0f6f6a;
+    --keep: #2c7a4b;
+    --fix: #b0731a;
+    --drop: #b23a3a;
+    --keep-bg: #e3f1e8;
+    --fix-bg: #f7ecd9;
+    --drop-bg: #f5e1e1;
+    --chip: #e9e8e2;
+    --focus: #0f6f6a;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16181d; --card: #1f2229; --ink: #e8e6df; --muted: #9a9ea9;
+      --line: #33373f; --code-bg: #262a32; --accent: #5cc1b9;
+      --keep: #6fcf97; --fix: #e2b06a; --drop: #e58484;
+      --keep-bg: #22392c; --fix-bg: #3d3121; --drop-bg: #41282a; --chip: #2b2f37;
+      --focus: #5cc1b9; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #16181d; --card: #1f2229; --ink: #e8e6df; --muted: #9a9ea9;
+    --line: #33373f; --code-bg: #262a32; --accent: #5cc1b9;
+    --keep: #6fcf97; --fix: #e2b06a; --drop: #e58484;
+    --keep-bg: #22392c; --fix-bg: #3d3121; --drop-bg: #41282a; --chip: #2b2f37;
+    --focus: #5cc1b9; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-inline: 16px; padding-block: 0 96px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  header.top {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: var(--paper); border-bottom: 1px solid var(--line);
+    padding-block: 14px 10px; margin-inline: -16px; padding-inline: 16px;
+  }
+  header.top .wrap { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: baseline; }
+  h1 { font-size: 20px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  h1 small { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .filters button {
+    font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  .filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .profile { margin-block: 18px 8px; color: var(--muted); font-size: 14px; }
+  .profile dt { font-weight: 600; color: var(--ink); display: inline; }
+  .profile dd { display: inline; margin: 0; }
+  .profile div { margin-bottom: 4px; }
+  .profile ul { margin: 2px 0 0 18px; padding: 0; }
+  .howto {
+    margin-block: 14px 22px; padding: 12px 14px; border-left: 3px solid var(--accent);
+    background: var(--card); font-size: 14px;
+  }
+  .list { display: grid; gap: 14px; }
+  article.card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px 18px; display: grid; gap: 10px;
+  }
+  article.card[data-decision="keep"] { border-left: 4px solid var(--keep); }
+  article.card[data-decision="fix"]  { border-left: 4px solid var(--fix); }
+  article.card[data-decision="drop"] { border-left: 4px solid var(--drop); opacity: 0.8; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+  .meta .id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; color: var(--ink); }
+  .chip { background: var(--chip); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.02em; text-transform: uppercase; font-size: 11px; }
+  .chip.check-reading { color: var(--accent); }
+  .chip.check-test { color: var(--fix); }
+  .chip.check-judgment { color: var(--drop); }
+  .rule {
+    font-family: Charter, "Iowan Old Style", Georgia, "Times New Roman", serif;
+    font-size: 19px; line-height: 1.35; margin: 0; text-wrap: balance;
+  }
+  .why { margin: 0; color: var(--muted); font-size: 14px; }
+  details { border-top: 1px dashed var(--line); padding-top: 8px; }
+  details summary { cursor: pointer; font-size: 13px; color: var(--muted); user-select: none; }
+  details summary:hover { color: var(--ink); }
+  .ev { margin-top: 8px; display: grid; gap: 8px; }
+  .ev .path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--accent); word-break: break-all; }
+  .ev pre {
+    margin: 4px 0 0; padding: 8px 10px; background: var(--code-bg); border-radius: 4px;
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; white-space: pre;
+  }
+  .ev .note { font-size: 13px; }
+  .check-detail { font-size: 13px; margin: 0; }
+  .check-detail b { font-weight: 600; }
+  .decide { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-top: 1px solid var(--line); padding-top: 12px; }
+  .decide .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .decide .seg button {
+    font: inherit; font-size: 13px; padding: 6px 14px; border: 0; background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  .decide .seg button + button { border-left: 1px solid var(--line); }
+  .decide .seg button[aria-pressed="true"].k { background: var(--keep-bg); color: var(--keep); font-weight: 600; }
+  .decide .seg button[aria-pressed="true"].f { background: var(--fix-bg); color: var(--fix); font-weight: 600; }
+  .decide .seg button[aria-pressed="true"].d { background: var(--drop-bg); color: var(--drop); font-weight: 600; }
+  .decide .hint { font-size: 12px; color: var(--muted); }
+  .inputs { display: grid; gap: 8px; }
+  .inputs label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 3px; }
+  textarea, input[type="text"] {
+    width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 6px; background: var(--paper); color: var(--ink); resize: vertical;
+  }
+  textarea.revised { font-family: Charter, "Iowan Old Style", Georgia, serif; font-size: 16px; min-height: 64px; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  footer.bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+    background: var(--card); border-top: 1px solid var(--line);
+    padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  footer.bar .wrap { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .progress { font-variant-numeric: tabular-nums; font-size: 14px; }
+  .progress .bar { display: inline-block; width: 140px; height: 6px; background: var(--chip); border-radius: 3px; vertical-align: middle; margin-left: 8px; overflow: hidden; }
+  .progress .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+  .actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; }
+  .actions button, .actions a {
+    font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 6px; cursor: pointer; text-decoration: none;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  }
+  .actions .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .toast { font-size: 13px; color: var(--muted); min-width: 90px; }
+  .empty { color: var(--muted); padding: 30px 0; text-align: center; }
+  @media (prefers-reduced-motion: no-preference) { .progress .bar i { transition: width 200ms ease; } }
+  @media (max-width: 480px) { .rule { font-size: 17px; } .filters { margin-left: 0; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1 id="title">Conventions <small id="repo"></small></h1>
+  <div class="filters" id="filters" role="group" aria-label="Filter rules"></div>
+</div></header>
+
+<div class="wrap">
+  <dl class="profile" id="profile"></dl>
+  <div class="howto">
+    Each card is a rule the agent thinks this repo follows. For each one: <b>Keep</b> if it is right,
+    <b>Fix</b> and rewrite it if it is close, <b>Drop</b> if it is wrong or not a rule.
+    Open <i>Evidence</i> to see where it came from. Your decisions are saved in this browser as you go.
+    When done, use <b>Copy</b> or <b>Download</b> at the bottom to hand them back.
+  </div>
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty" hidden>No rules match this filter.</div>
+</div>
+
+<footer class="bar"><div class="wrap">
+  <div class="progress"><span id="count">0 / 0 decided</span><span class="bar"><i id="fill"></i></span></div>
+  <span class="toast" id="toast" aria-live="polite"></span>
+  <div class="actions">
+    <button type="button" id="reset">Clear decisions</button>
+    <button type="button" id="copy">Copy corrections</button>
+    <a id="download" class="primary" href="#" download="corrections.json">Download corrections</a>
+  </div>
+</div></footer>
+
+<script>
+const DATA = /*__DATA__*/null;
+(function () {
+  if (!DATA) { document.getElementById('list').textContent = 'No data was embedded in this form.'; return; }
+  const rules = DATA.conventions;
+  const KEY = 'conventions-review:' + DATA.repo;
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  document.getElementById('repo').textContent = DATA.repo + ' · ' + rules.length + ' rules';
+  document.title = 'Conventions · ' + DATA.repo;
+
+  const p = DATA.profile || {};
+  document.getElementById('profile').innerHTML =
+    `<div><dt>Stack.</dt> <dd>${esc(p.stack)}</dd></div>` +
+    `<div><dt>Tests.</dt> <dd>${esc(p.tests)}</dd></div>` +
+    (p.layers && p.layers.length ? `<div><dt>Layers.</dt><ul>${p.layers.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>` : '') +
+    (p.notes && p.notes.length ? `<div><dt>Notes.</dt><ul>${p.notes.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>` : '');
+
+  const FILTERS = [['all','All'],['undecided','Undecided'],['reading','Check by reading'],['test','Needs a test'],['judgment','Needs judgment']];
+  let filter = 'all';
+  const fEl = document.getElementById('filters');
+  fEl.innerHTML = FILTERS.map(([k,l]) => `<button type="button" data-f="${k}" aria-pressed="${k===filter}">${l}</button>`).join('');
+  fEl.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    filter = b.dataset.f;
+    fEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    applyFilter();
+  });
+
+  const list = document.getElementById('list');
+  list.innerHTML = rules.map(c => {
+    const s = state[c.id] || {};
+    const ev = (c.evidence || []).map(e => `<div><div class="path">${esc(e.path)}</div>${e.excerpt ? `<pre>${esc(e.excerpt)}</pre>` : ''}</div>`).join('');
+    const ce = (c.counter_examples || []).length
+      ? `<div style="margin-top:10px"><b style="font-size:12px;color:var(--drop)">Where the repo breaks it</b>${c.counter_examples.map(e => `<div><div class="path">${esc(e.path)}</div><div class="note">${esc(e.note)}</div></div>`).join('')}</div>`
+      : '';
+    const checkLabel = {reading:'Check by reading', test:'Needs a test', judgment:'Needs judgment'}[c.check] || c.check;
+    return `<article class="card" id="card-${esc(c.id)}" data-id="${esc(c.id)}" data-check="${esc(c.check)}" data-decision="${esc(s.decision||'')}">
+      <div class="meta">
+        <span class="id">${esc(c.id)}</span>
+        <span class="chip">${esc(c.category)}</span>
+        <span class="chip check-${esc(c.check)}">${esc(checkLabel)}</span>
+        <span>confidence ${esc(c.confidence)}</span>
+      </div>
+      <p class="rule">${esc(c.rule)}</p>
+      <p class="why">${esc(c.why_it_matters)}</p>
+      <p class="check-detail"><b>How a change gets checked:</b> ${esc(c.check_detail)}</p>
+      <details><summary>Evidence (${(c.evidence||[]).length})${(c.counter_examples||[]).length ? ' · breaks (' + c.counter_examples.length + ')' : ''}</summary><div class="ev">${ev}${ce}</div></details>
+      <div class="decide">
+        <span class="seg" role="group" aria-label="Decision for ${esc(c.id)}">
+          <button type="button" class="k" data-d="keep" aria-pressed="${s.decision==='keep'}">Keep</button>
+          <button type="button" class="f" data-d="fix" aria-pressed="${s.decision==='fix'}">Fix</button>
+          <button type="button" class="d" data-d="drop" aria-pressed="${s.decision==='drop'}">Drop</button>
+        </span>
+        <span class="hint" data-hint></span>
+      </div>
+      <div class="inputs">
+        <div data-revised ${s.decision==='fix' ? '' : 'hidden'}>
+          <label for="rev-${esc(c.id)}">Rewrite the rule</label>
+          <textarea class="revised" id="rev-${esc(c.id)}">${esc(s.revised ?? c.rule)}</textarea>
+        </div>
+        <div>
+          <label for="note-${esc(c.id)}">Note (why, or what the agent missed)</label>
+          <input type="text" id="note-${esc(c.id)}" value="${esc(s.note||'')}" placeholder="optional">
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  list.addEventListener('click', e => {
+    const b = e.target.closest('.seg button'); if (!b) return;
+    const card = b.closest('article'); const id = card.dataset.id;
+    const d = b.dataset.d;
+    const cur = state[id] || {};
+    const next = cur.decision === d ? '' : d;
+    state[id] = { ...cur, decision: next };
+    card.dataset.decision = next;
+    card.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.d === next));
+    card.querySelector('[data-revised]').hidden = next !== 'fix';
+    save(); update(); applyFilter();
+  });
+  list.addEventListener('input', e => {
+    const card = e.target.closest('article'); if (!card) return;
+    const id = card.dataset.id; const cur = state[id] || {};
+    if (e.target.classList.contains('revised')) state[id] = { ...cur, revised: e.target.value };
+    else if (e.target.type === 'text') state[id] = { ...cur, note: e.target.value };
+    save(); update();
+  });
+
+  function applyFilter() {
+    let shown = 0;
+    list.querySelectorAll('article').forEach(a => {
+      const d = (state[a.dataset.id] || {}).decision || '';
+      const ok = filter === 'all' || (filter === 'undecided' ? !d : a.dataset.check === filter);
+      a.hidden = !ok; if (ok) shown++;
+    });
+    document.getElementById('empty').hidden = shown > 0;
+  }
+
+  function corrections() {
+    return {
+      repo: DATA.repo,
+      generated_at: DATA.generated_at,
+      reviewed_at: new Date().toISOString(),
+      decisions: rules.map(c => {
+        const s = state[c.id] || {};
+        return {
+          id: c.id,
+          decision: s.decision || 'undecided',
+          rule_original: c.rule,
+          rule_final: s.decision === 'drop' ? null : (s.decision === 'fix' ? (s.revised ?? c.rule) : c.rule),
+          check: c.check,
+          note: s.note || ''
+        };
+      })
+    };
+  }
+
+  function update() {
+    const done = rules.filter(c => (state[c.id] || {}).decision).length;
+    document.getElementById('count').textContent = `${done} / ${rules.length} decided`;
+    document.getElementById('fill').style.width = (rules.length ? (100 * done / rules.length) : 0) + '%';
+    const json = JSON.stringify(corrections(), null, 2);
+    const a = document.getElementById('download');
+    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+    a.download = `corrections-${DATA.repo.replace(/[^\w.-]+/g, '_')}.json`;
+  }
+
+  const toast = m => { const t = document.getElementById('toast'); t.textContent = m; setTimeout(() => { if (t.textContent === m) t.textContent = ''; }, 2500); };
+  document.getElementById('copy').addEventListener('click', () => {
+    const json = JSON.stringify(corrections(), null, 2);
+    const fallback = () => { const ta = document.createElement('textarea'); ta.value = json; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Copied'); } catch (e) { toast('Select and copy manually'); } ta.remove(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json).then(() => toast('Copied'), fallback); else fallback();
+  });
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!Object.keys(state).length) return;
+    const b = document.getElementById('reset');
+    if (b.dataset.armed) { state = {}; save(); location.reload(); return; }
+    b.dataset.armed = '1'; b.textContent = 'Click again to clear'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Clear decisions'; }, 3000);
+  });
+
+  update(); applyFilter();
+})();
+</script>
+</body>
+</html>
